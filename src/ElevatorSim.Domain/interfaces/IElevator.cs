@@ -9,11 +9,11 @@ public interface IElevator
     int CurrentFloor { get; }
     ElevatorDirection Direction { get; }
     ElevatorState State { get; }
-    int PassangerCount { get; }
+    int PassengerCount { get; }
     int MaxCapacity { get; }
     double SecondsPerFloor { get; }
     bool IsAtCapacity { get; }
     Task MoveToFloorAsync(int destinatonFloor, CancellationToken cancellationToken);
-    void AddPassagers(int count);
+    void AddPassengers(int count);
     void RemovePassengers(int count);
 }
