@@ -1,4 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
 using ElevatorSim.Application.Controllers;
 using ElevatorSim.Application.Strategies;
 using ElevatorSim.Domain.Exceptions;
