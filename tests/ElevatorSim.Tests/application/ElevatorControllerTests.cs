@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using ElevatorSim.Application.Controllers;
 using ElevatorSim.Application.Strategies;
 using ElevatorSim.Domain.Exceptions;
@@ -98,11 +99,34 @@ public class ElevatorControllerTests
 
         ElevatorController controller = new ElevatorController([elevatorMock], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
 
-        using CancellationTokenSource cts = new CancellationTokenSource(); 
+        using CancellationTokenSource cts = new CancellationTokenSource();
 
         var requestTask = controller.RequestElevatorAsync(5, 1, cts.Token);
         cts.Cancel();
 
         await Assert.ThrowsAsync<TaskCanceledException>(() => requestTask);
+    }
+
+    [Fact]
+    public async Task RequestElevatorAsync_UsesUpdatedStrategy_AfterSetDispatchStrategy()
+    {
+        var elevator = CreateElevator(id: "E1");
+
+        Mock<IDispatchStrategy> initialStrategy = new Mock<IDispatchStrategy>();
+        initialStrategy
+            .Setup(s => s.SelectElevator(It.IsAny<IReadOnlyList<IElevator>>(), It.IsAny<int>(), It.IsAny<int>()))
+            .Returns((IElevator?)null);
+
+        Mock<IDispatchStrategy> newStrategy = new Mock<IDispatchStrategy>();
+        newStrategy
+            .Setup(s => s.SelectElevator(It.IsAny<IReadOnlyList<IElevator>>(), 5, 1))
+            .Returns(elevator);
+
+        ElevatorController controller = new ElevatorController([elevator], initialStrategy.Object, minFloor: 1, maxFloor: 10);
+        controller.SetDispatchStrategy(newStrategy.Object);
+        await controller.RequestElevatorAsync(5, 1, CancellationToken.None);
+
+        newStrategy.Verify(s => s.SelectElevator(It.IsAny<IReadOnlyList<IElevator>>(), 5, 1), Times.Once);
+        initialStrategy.Verify(s => s.SelectElevator(It.IsAny<IReadOnlyList<IElevator>>(), 5, 1), Times.Never);
     }
 }

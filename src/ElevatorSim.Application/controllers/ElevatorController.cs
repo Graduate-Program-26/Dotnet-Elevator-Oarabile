@@ -6,7 +6,7 @@ namespace ElevatorSim.Application.Controllers;
 public sealed class ElevatorController : IElevatorController
 {
     private readonly List<IElevator> _elevators;
-    private readonly IDispatchStrategy _strategy;
+    private IDispatchStrategy _strategy;
     private readonly int _minFloor;
     private readonly int _maxFloor;
     private readonly Queue<PendingRequest> _pendingRequests = new();
@@ -21,6 +21,13 @@ public sealed class ElevatorController : IElevatorController
         _maxFloor = maxFloor;
     }
 
+    public void SetDispatchStrategy(IDispatchStrategy strategy)
+    {
+        lock (_lock)
+        {
+            _strategy = strategy;
+        }
+    }
     private sealed record PendingRequest(
         int RequestedFloor,
         int PassengerCount,

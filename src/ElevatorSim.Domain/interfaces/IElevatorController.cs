@@ -4,4 +4,5 @@ public interface IElevatorController
 {
     IReadOnlyList<IElevator> Elevators {get;}
     Task RequestElevatorAsync(int requestedFloor, int passengerCount, CancellationToken cancellationToken);
+    void SetDispatchStrategy(IDispatchStrategy strategy);
 }
