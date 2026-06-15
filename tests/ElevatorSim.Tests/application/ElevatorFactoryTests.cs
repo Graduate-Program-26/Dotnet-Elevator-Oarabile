@@ -17,4 +17,20 @@ public class ElevatorFactoryTests
         Assert.Equal("E1", elevator.Id);
         Assert.Equal(1, elevator.CurrentFloor);
     }
+
+    [Fact]
+    public void Create_ReturnsHighSpeedElevator_WhenTypeIsHighSpeed()
+    {
+        var elevator = _factory.Create(ElevatorType.HighSpeed, "E2", startingFloor: 1);
+
+        Assert.IsType<HighSpeedElevator>(elevator);
+    }
+
+    [Fact]
+    public void Create_ReturnsFreightElevator_WhenTypeIsFreight()
+    {
+        var elevator = _factory.Create(ElevatorType.Freight, "E3", startingFloor: 1);
+
+        Assert.IsType<FreightElevator>(elevator);
+    }
 }
