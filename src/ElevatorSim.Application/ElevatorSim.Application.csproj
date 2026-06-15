@@ -10,4 +10,8 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ElevatorSim.Domain\ElevatorSim.Domain.csproj" />
+    </ItemGroup>
 </Project>
