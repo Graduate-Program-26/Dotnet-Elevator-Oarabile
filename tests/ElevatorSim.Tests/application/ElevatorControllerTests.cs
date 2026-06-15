@@ -86,9 +86,24 @@ public class ElevatorControllerTests
 
         Assert.False(secondRequestTask.IsCompleted);
         moveToFloor5.SetResult();
-        
+
         await secondRequestTask.WaitAsync(TimeSpan.FromSeconds(2));
 
         elevatorMock.Verify(e => e.MoveToFloorAsync(7, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RequestElevatorAsync_CancelsQueuedRequest_WhenTokenCancelled()
+    {
+        var elevatorMock = CreateElevator(id: "E1", isAtCapacity: true);
+
+        ElevatorController controller = new ElevatorController([elevatorMock], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
+
+        using CancellationTokenSource cts = new CancellationTokenSource(); 
+
+        var requestTask = controller.RequestElevatorAsync(5, 1, cts.Token);
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<TaskCanceledException>(() => requestTask);
     }
 }
