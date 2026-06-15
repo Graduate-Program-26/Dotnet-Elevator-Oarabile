@@ -33,4 +33,14 @@ public class ElevatorFactoryTests
 
         Assert.IsType<FreightElevator>(elevator);
     }
+
+    [Fact]
+    public void Create_Throws_WhenTypeIsUnsupported()
+    {
+        var invalidType = (ElevatorType)999;
+
+        var act = () => _factory.Create(invalidType, "E1", startingFloor: 1);
+
+        Assert.Throws<ArgumentOutOfRangeException>(act);
+    }
 }
