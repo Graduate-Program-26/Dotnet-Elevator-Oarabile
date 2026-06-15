@@ -1,4 +1,5 @@
 using ElevatorSim.Domain.Interfaces;
+using ElevatorSim.Domain.ValueObjects;
 
 namespace ElevatorSim.Application.Controllers;
 
@@ -12,18 +13,103 @@ public sealed class ElevatorController : IElevatorController
     private readonly HashSet<string> _busyElevatorIds = new();
     private readonly object _lock = new();
 
-    private sealed record PendingRequest(
-        int RequestedFloor,
-        int PassengerCount,
-        TaskCompletionSource CompletionSource,
-        CancellationToken CancellationToken
-    );
-
     public ElevatorController(IEnumerable<IElevator> elevators, IDispatchStrategy strategy, int minFloor, int maxFloor)
     {
         _elevators = elevators.ToList();
         _strategy = strategy;
         _minFloor = minFloor;
         _maxFloor = maxFloor;
+    }
+
+    private sealed record PendingRequest(
+        int RequestedFloor,
+        int PassengerCount,
+        TaskCompletionSource CompletionSource,
+        CancellationToken CancellationToken
+    );
+    
+    private IElevator? TryDispatch(int requestedFloor, int passengerCount, CancellationToken cancellationToken)
+    {
+        var available = _elevators.Where(e => !_busyElevatorIds.Contains(e.Id)).ToList();
+        var selected = _strategy.SelectElevator(available, requestedFloor, passengerCount);
+
+        if (selected is null)
+        {
+            return null;
+        }
+
+        selected.AddPassengers(passengerCount);
+        _busyElevatorIds.Add(selected.Id);
+
+        _ = RunDispatchAsync(selected, requestedFloor, cancellationToken);
+
+        return selected;
+    }
+
+    private async Task RunDispatchAsync(IElevator elevator, int destinationFloor, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await elevator.MoveToFloorAsync(destinationFloor, cancellationToken);
+        }
+        finally
+        {
+            lock (_lock) 
+            {
+                _busyElevatorIds.Remove(elevator.Id);
+                ProcessPendingRequests();
+            }
+        }
+    }
+
+    private void ProcessPendingRequests()
+    {
+        Queue<PendingRequest> stillWaiting = new Queue<PendingRequest>();
+
+        while (_pendingRequests.TryDequeue(out var request))
+        {
+            if (request.CancellationToken.IsCancellationRequested)
+            {
+                continue;
+            }
+
+            if (TryDispatch(request.RequestedFloor, request.PassengerCount, request.CancellationToken) is not null)
+            {
+                request.CompletionSource.TrySetResult();
+            }
+            else
+            {
+                stillWaiting.Enqueue(request);
+            }
+        }
+
+        while (stillWaiting.TryDequeue(out var request))
+        {
+            _pendingRequests.Enqueue(request);
+        }
+    }
+
+    public IReadOnlyList<IElevator> Elevators => _elevators;
+
+    public Task RequestElevatorAsync(int requestedFloor, int passengerCount, CancellationToken cancellationToken)
+    {
+        _ = new FloorNumber(requestedFloor, _minFloor, _maxFloor);
+
+        lock (_lock)
+        {
+            if (TryDispatch(requestedFloor, passengerCount, cancellationToken) is not null)
+            {
+                return Task.CompletedTask;
+            }
+
+            TaskCompletionSource completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            PendingRequest request = new PendingRequest(requestedFloor, passengerCount, completionSource, cancellationToken);
+
+            cancellationToken.Register(() => completionSource.TrySetCanceled());
+
+            _pendingRequests.Enqueue(request);
+
+            return completionSource.Task;
+        }
     }
 }
