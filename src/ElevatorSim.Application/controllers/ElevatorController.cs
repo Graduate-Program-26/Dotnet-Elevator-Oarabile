@@ -108,7 +108,6 @@ public sealed class ElevatorController : IElevatorController
             cancellationToken.Register(() => completionSource.TrySetCanceled());
 
             _pendingRequests.Enqueue(request);
-
             return completionSource.Task;
         }
     }
