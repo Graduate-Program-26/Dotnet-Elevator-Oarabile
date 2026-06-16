@@ -23,7 +23,7 @@ public class ElevatorControllerTests
     public async Task RequestElevatorAsync_Throws_WhenFloorIsBelowMinimum()
     {
         var elevator = CreateElevator(id: "E1");
-        var controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
+        ElevatorController controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         var act = async () => await controller.RequestElevatorAsync(0, 1, CancellationToken.None);
 
@@ -34,7 +34,7 @@ public class ElevatorControllerTests
     public async Task RequestElevatorAsync_Throws_WhenFloorIsAboveMaximum()
     {
         var elevator = CreateElevator(id: "E1");
-        var controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
+        ElevatorController controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         var act = async () => await controller.RequestElevatorAsync(11, 1, CancellationToken.None);
 
