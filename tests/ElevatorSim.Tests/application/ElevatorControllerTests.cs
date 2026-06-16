@@ -2,6 +2,7 @@ using ElevatorSim.Application.Controllers;
 using ElevatorSim.Application.Strategies;
 using ElevatorSim.Domain.Exceptions;
 using ElevatorSim.Domain.Interfaces;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace ElevatorSim.Tests.Application;
@@ -22,7 +23,7 @@ public class ElevatorControllerTests
     public async Task RequestElevatorAsync_Throws_WhenFloorIsBelowMinimum()
     {
         var elevator = CreateElevator(id: "E1");
-        var controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
+        ElevatorController controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         var act = async () => await controller.RequestElevatorAsync(0, 1, CancellationToken.None);
 
@@ -33,7 +34,7 @@ public class ElevatorControllerTests
     public async Task RequestElevatorAsync_Throws_WhenFloorIsAboveMaximum()
     {
         var elevator = CreateElevator(id: "E1");
-        var controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
+        ElevatorController controller = new ElevatorController([elevator], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         var act = async () => await controller.RequestElevatorAsync(11, 1, CancellationToken.None);
 
@@ -54,7 +55,7 @@ public class ElevatorControllerTests
             .Returns(elevatorMock.Object);
 
         ElevatorController controller =
-            new ElevatorController([elevatorMock.Object], strategyMock.Object, minFloor: 1, maxFloor: 10);
+            new ElevatorController([elevatorMock.Object], strategyMock.Object, minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         await controller.RequestElevatorAsync(5, 2, CancellationToken.None);
 
@@ -77,7 +78,7 @@ public class ElevatorControllerTests
         elevatorMock.Setup(e => e.MoveToFloorAsync(7, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        ElevatorController controller = new ElevatorController([elevatorMock.Object], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
+        ElevatorController controller = new ElevatorController([elevatorMock.Object], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         await controller.RequestElevatorAsync(5, 1, CancellationToken.None);
 
@@ -96,7 +97,7 @@ public class ElevatorControllerTests
     {
         var elevatorMock = CreateElevator(id: "E1", isAtCapacity: true);
 
-        ElevatorController controller = new ElevatorController([elevatorMock], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10);
+        ElevatorController controller = new ElevatorController([elevatorMock], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         using CancellationTokenSource cts = new CancellationTokenSource();
 
@@ -121,7 +122,7 @@ public class ElevatorControllerTests
             .Setup(s => s.SelectElevator(It.IsAny<IReadOnlyList<IElevator>>(), 5, 1))
             .Returns(elevator);
 
-        ElevatorController controller = new ElevatorController([elevator], initialStrategy.Object, minFloor: 1, maxFloor: 10);
+        ElevatorController controller = new ElevatorController([elevator], initialStrategy.Object, minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
         controller.SetDispatchStrategy(newStrategy.Object);
         await controller.RequestElevatorAsync(5, 1, CancellationToken.None);
 

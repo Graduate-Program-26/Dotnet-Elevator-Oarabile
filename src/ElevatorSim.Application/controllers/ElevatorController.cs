@@ -1,5 +1,6 @@
 using ElevatorSim.Domain.Interfaces;
 using ElevatorSim.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace ElevatorSim.Application.Controllers;
 
@@ -12,13 +13,15 @@ public sealed class ElevatorController : IElevatorController
     private readonly Queue<PendingRequest> _pendingRequests = new();
     private readonly HashSet<string> _busyElevatorIds = new();
     private readonly object _lock = new();
+    private readonly ILogger<ElevatorController> _logger;
 
-    public ElevatorController(IEnumerable<IElevator> elevators, IDispatchStrategy strategy, int minFloor, int maxFloor)
+    public ElevatorController(IEnumerable<IElevator> elevators, IDispatchStrategy strategy, int minFloor, int maxFloor, ILogger<ElevatorController> logger)
     {
         _elevators = elevators.ToList();
         _strategy = strategy;
         _minFloor = minFloor;
         _maxFloor = maxFloor;
+        _logger = logger;
     }
 
     public void SetDispatchStrategy(IDispatchStrategy strategy)
@@ -27,14 +30,17 @@ public sealed class ElevatorController : IElevatorController
         {
             _strategy = strategy;
         }
+
+        _logger.LogInformation("Dispatch strategy changed to {StrategyType}.", strategy.GetType().Name);
     }
+
     private sealed record PendingRequest(
         int RequestedFloor,
         int PassengerCount,
         TaskCompletionSource CompletionSource,
         CancellationToken CancellationToken
     );
-    
+
     private IElevator? TryDispatch(int requestedFloor, int passengerCount, CancellationToken cancellationToken)
     {
         var available = _elevators.Where(e => !_busyElevatorIds.Contains(e.Id)).ToList();
@@ -48,6 +54,13 @@ public sealed class ElevatorController : IElevatorController
         selected.AddPassengers(passengerCount);
         _busyElevatorIds.Add(selected.Id);
 
+        _logger.LogInformation(
+            "Elevator {ElevatorId} dispatched to floor {RequestedFloor} with {PassengerCount} passengers.",
+            selected.Id,
+            requestedFloor,
+            passengerCount
+            );
+
         _ = RunDispatchAsync(selected, requestedFloor, cancellationToken);
 
         return selected;
@@ -58,10 +71,15 @@ public sealed class ElevatorController : IElevatorController
         try
         {
             await elevator.MoveToFloorAsync(destinationFloor, cancellationToken);
+
+            _logger.LogInformation(
+                "Elevator {ElevatorId} arrived at floor {DestinationFloor}.",
+                elevator.Id,
+                destinationFloor);
         }
         finally
         {
-            lock (_lock) 
+            lock (_lock)
             {
                 _busyElevatorIds.Remove(elevator.Id);
                 ProcessPendingRequests();
