@@ -11,5 +11,10 @@
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
         <PackageReference Include="Spectre.Console" Version="0.56.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ElevatorSim.Application\ElevatorSim.Application.csproj" />
+      <ProjectReference Include="..\ElevatorSim.Infrastructure\ElevatorSim.Infrastructure.csproj" />
+    </ItemGroup>
 </Project>
 
