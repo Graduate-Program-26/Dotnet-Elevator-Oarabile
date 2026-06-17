@@ -13,6 +13,8 @@ public class NearestElevatorStrategyTests
         mock.Setup(e => e.Id).Returns(id);
         mock.Setup(e => e.CurrentFloor).Returns(currentFloor);
         mock.Setup(e => e.IsAtCapacity).Returns(isAtCapacity);
+        mock.Setup(e => e.PassengerCount).Returns(isAtCapacity ? 10 : 0);
+        mock.Setup(e => e.MaxCapacity).Returns(10);
         return mock.Object;
     }
 
@@ -53,5 +55,19 @@ public class NearestElevatorStrategyTests
         var result = _strategy.SelectElevator(elevators, requestedFloor: 5, passengerCount: 1);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void SelectElevator_SkipsElevator_WhenGroupWillNotFit()
+    {
+        IElevator nearButTooSmall = CreateElevator(id: "E1", currentFloor: 3, isAtCapacity: false);
+        Mock.Get(nearButTooSmall).Setup(e => e.PassengerCount).Returns(8);
+        IElevator farButEnoughSpace = CreateElevator(id: "E2", currentFloor: 9, isAtCapacity: false);
+
+        List<IElevator> elevators = new List<IElevator> { nearButTooSmall, farButEnoughSpace };
+
+        var result = _strategy.SelectElevator(elevators, requestedFloor: 5, passengerCount: 3);
+
+        Assert.Equal("E2", result?.Id);
     }
 }

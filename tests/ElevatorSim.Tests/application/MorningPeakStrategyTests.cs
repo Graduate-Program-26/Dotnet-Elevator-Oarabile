@@ -16,6 +16,8 @@ public class MorningPeakStrategyTests
         mock.Setup(e => e.CurrentFloor).Returns(currentFloor);
         mock.Setup(e => e.Direction).Returns(direction);
         mock.Setup(e => e.IsAtCapacity).Returns(isAtCapacity);
+        mock.Setup(e => e.PassengerCount).Returns(isAtCapacity ? 10 : 0);
+        mock.Setup(e => e.MaxCapacity).Returns(10);
         return mock.Object;
     }
 
@@ -95,5 +97,19 @@ public class MorningPeakStrategyTests
         var result = _strategy.SelectElevator(elevators, requestedFloor: 5, passengerCount: 1);
 
         Assert.Null(result);
+    }
+
+    [Fact]
+    public void SelectElevator_SkipsElevator_WhenGroupWillNotFit()
+    {
+        IElevator movingUpButTooSmall = CreateElevator(id: "E1", currentFloor: 2, direction: ElevatorDirection.Up);
+        Mock.Get(movingUpButTooSmall).Setup(e => e.PassengerCount).Returns(9);
+        IElevator idleWithSpace = CreateElevator(id: "E2", currentFloor: 8, direction: ElevatorDirection.Idle);
+
+        List<IElevator> elevators = new List<IElevator> { movingUpButTooSmall, idleWithSpace };
+
+        var result = _strategy.SelectElevator(elevators, requestedFloor: 5, passengerCount: 2);
+
+        Assert.Equal("E2", result?.Id);
     }
 }
