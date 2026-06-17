@@ -132,6 +132,22 @@ public class ElevatorBaseTests
     }
 
     [Fact]
+    public async Task MoveToFloorAsync_CanMoveAgain_AfterPassengersAreDroppedOff()
+    {
+        TestElevator elevator = new TestElevator("E1", maxCapacity: 10, secondsPerFloor: 0.01, startingFloor: 1);
+        elevator.AddPassengers(2);
+
+        await elevator.MoveToFloorAsync(3, CancellationToken.None);
+        elevator.RemovePassengers(2);
+        await elevator.MoveToFloorAsync(5, CancellationToken.None);
+
+        elevator.CurrentFloor.Should().Be(5);
+        elevator.PassengerCount.Should().Be(0);
+        elevator.State.Should().Be(ElevatorState.DoorsOpen);
+        elevator.Direction.Should().Be(ElevatorDirection.Idle);
+    }
+
+    [Fact]
     public async Task MoveToFloorAsync_CanBeCancelled()
     {
         TestElevator elevator = new TestElevator("E1", maxCapacity: 10, secondsPerFloor: 1, startingFloor: 1);

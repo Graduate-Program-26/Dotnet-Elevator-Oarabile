@@ -106,6 +106,8 @@ public class RestrictedFloorStrategyTests
         var mock = new Mock<IElevator>();
         mock.Setup(e => e.Id).Returns(id);
         mock.Setup(e => e.IsAtCapacity).Returns(isAtCapacity);
+        mock.Setup(e => e.PassengerCount).Returns(isAtCapacity ? 10 : 0);
+        mock.Setup(e => e.MaxCapacity).Returns(10);
         return mock.Object;
     }
 }
