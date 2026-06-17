@@ -46,6 +46,47 @@ public abstract class ElevatorBase : IElevator
         _passengerCount += count;
     }
 
+    public void BeginBoarding()
+    {
+        if (_state == ElevatorState.OutOfService)
+        {
+            throw new InvalidOperationException($"Elevator {Id} is out of service.");
+        }
+
+        _direction = ElevatorDirection.Idle;
+        _state = ElevatorState.Boarding;
+    }
+
+    public void CompleteBoarding()
+    {
+        if (_state == ElevatorState.Boarding || _state == ElevatorState.DoorsOpen)
+        {
+            _state = ElevatorState.Idle;
+            _direction = ElevatorDirection.Idle;
+        }
+    }
+
+    public void MarkOutOfService()
+    {
+        if (_state == ElevatorState.Moving || _state == ElevatorState.Boarding)
+        {
+            throw new InvalidOperationException($"Elevator {Id} cannot be marked out of service while {_state}.");
+        }
+
+        _passengerCount = 0;
+        _direction = ElevatorDirection.Idle;
+        _state = ElevatorState.OutOfService;
+    }
+
+    public void ReturnToService()
+    {
+        if (_state == ElevatorState.OutOfService)
+        {
+            _state = ElevatorState.Idle;
+            _direction = ElevatorDirection.Idle;
+        }
+    }
+
     public void RemovePassengers(int count)
     {
         if (count < 0)
@@ -54,10 +95,21 @@ public abstract class ElevatorBase : IElevator
         }
 
         _passengerCount = Math.Max(0, _passengerCount - count);
+
+        if (_passengerCount == 0 && (_state == ElevatorState.DoorsOpen || _state == ElevatorState.Boarding))
+        {
+            _state = ElevatorState.Idle;
+            _direction = ElevatorDirection.Idle;
+        }
     }
 
     public async Task MoveToFloorAsync(int destinationFloor, CancellationToken cancellationToken)
     {
+        if (_state == ElevatorState.OutOfService)
+        {
+            throw new InvalidOperationException($"Elevator {Id} is out of service.");
+        }
+
         if (_state == ElevatorState.DoorsOpen || _state == ElevatorState.Boarding)
         {
             throw new InvalidOperationException(
