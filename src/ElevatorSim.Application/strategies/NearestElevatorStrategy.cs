@@ -7,7 +7,7 @@ public sealed class NearestElevatorStrategy : IDispatchStrategy
     public IElevator? SelectElevator(IReadOnlyList<IElevator> elevators, int requestedFloor, int passengerCount)
     {
         return elevators
-            .Where(e => !e.IsAtCapacity)
+            .Where(e => ElevatorSelectionRules.CanCarry(e, passengerCount))
             .OrderBy(e => Math.Abs(e.CurrentFloor - requestedFloor))
             .FirstOrDefault();
     }

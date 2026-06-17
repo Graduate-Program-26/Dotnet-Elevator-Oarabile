@@ -1,4 +1,3 @@
-using System.Data;
 using ElevatorSim.Domain.Enums;
 using ElevatorSim.Domain.Interfaces;
 
@@ -10,7 +9,9 @@ public sealed class MorningPeakStrategy : IDispatchStrategy
 
     public IElevator? SelectElevator(IReadOnlyList<IElevator> elevators, int requestedFloor, int passengerCount)
     {
-        var availableElevators = elevators.Where(e => !e.IsAtCapacity).ToList();
+        var availableElevators = elevators
+            .Where(e => ElevatorSelectionRules.CanCarry(e, passengerCount))
+            .ToList();
 
         return availableElevators
             .OrderBy(e => GetPriorityScore(e, requestedFloor))
