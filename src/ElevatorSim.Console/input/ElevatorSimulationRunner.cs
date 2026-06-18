@@ -38,6 +38,15 @@ public sealed class ElevatorSimulationRunner
         _inputRunner = inputRunner;
     }
 
+    /// <summary>
+    /// Initializes the elevator simulation, starts all background services
+    /// (dashboard, autopilot, adaptive strategy, status updates, and input handling),
+    /// and keeps the simulation running until the user exits.
+    /// </summary>
+    /// <param name="elevators">The collection of elevators participating in the simulation.</param>
+    /// <param name="maxFloor">The highest floor available in the building.</param>
+    /// <returns>A task that completes when the simulation has been stopped.</returns>
+
     public async Task RunAsync(IReadOnlyList<IElevator> elevators, int maxFloor)
     {
         var normalStrategy = _serviceProvider.GetRequiredKeyedService<IDispatchStrategy>(DispatchStrategyType.Normal);
@@ -54,7 +63,7 @@ public sealed class ElevatorSimulationRunner
         _simulationStatus.UpdateStrategy(controller.CurrentStrategyName);
         _simulationStatus.UpdateAutopilot(_autopilotRunner.Enabled, _autopilotRunner.RequestsPerMinute);
         _simulationStatus.UpdateEmergencyMode(_adaptiveStrategyRunner.EmergencyModeEnabled);
-        _statusBoard.LogActivity("Commands: 'from,to,passengers', 'to,passengers', 'service E1 out', 'service E1 in', 'emergency on', 'auto on', 'rate 20', 'exit'.");
+        _statusBoard.LogActivity("Commands: 'from,to,passengers e.g (2,3,4)', 'service E1 (in/out)', 'emergency (on/off)', 'auto (on/off)', 'rate 20 (people/min)', 'exit'.");
 
         var dashboardTask = _dashboardRunner.RunAsync(controller.Elevators, simulationCts.Token);
         var autopilotTask = _autopilotRunner.RunAsync(controller, _statusBoard, _simulationStatus, maxFloor, simulationCts.Token);
@@ -74,6 +83,7 @@ public sealed class ElevatorSimulationRunner
         }
         catch (OperationCanceledException)
         {
+            //Expected exception, do nothing
         }
     }
 

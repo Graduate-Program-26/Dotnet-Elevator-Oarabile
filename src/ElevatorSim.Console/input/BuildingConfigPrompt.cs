@@ -28,12 +28,12 @@ public sealed class BuildingConfigPrompt
                 return request;
             }
 
-            global::System.Console.WriteLine();
+            System.Console.WriteLine();
             foreach (var error in result.Errors)
             {
-                global::System.Console.WriteLine($"{error.ErrorMessage}");
+                System.Console.WriteLine($"{error.ErrorMessage}");
             }
-            global::System.Console.WriteLine();
+            System.Console.WriteLine();
         }
     }
 
@@ -41,15 +41,15 @@ public sealed class BuildingConfigPrompt
     {
         while (true)
         {
-            global::System.Console.Write(message);
-            var input = global::System.Console.ReadLine();
+            System.Console.Write(message);
+            var input = System.Console.ReadLine();
 
             if (int.TryParse(input, out var value))
             {
                 return value;
             }
 
-            global::System.Console.WriteLine("Please enter a valid whole number.\n");
+            System.Console.WriteLine("Please enter a valid whole number.\n");
         }
     }
 }
