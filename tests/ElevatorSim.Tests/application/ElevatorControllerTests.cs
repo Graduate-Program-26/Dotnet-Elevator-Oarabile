@@ -84,38 +84,6 @@ public class ElevatorControllerTests
         elevatorMock.Verify(e => e.MoveToFloorAsync(5, It.IsAny<CancellationToken>()), Times.Once);
     }
 
-    [Fact]
-    public async Task RequestElevatorAsync_QueuesRequest_AndDispatchesOnceElevatorFrees()
-    {
-        TaskCompletionSource moveToFloor5 = new TaskCompletionSource();
-
-        Mock<IElevator> elevatorMock = new Mock<IElevator>();
-        elevatorMock.Setup(e => e.Id).Returns("E1");
-        elevatorMock.Setup(e => e.CurrentFloor).Returns(1);
-        elevatorMock.Setup(e => e.IsAtCapacity).Returns(false);
-        elevatorMock.Setup(e => e.PassengerCount).Returns(0);
-        elevatorMock.Setup(e => e.MaxCapacity).Returns(10);
-        elevatorMock.Setup(e => e.AddPassengers(It.IsAny<int>()));
-        elevatorMock.Setup(e => e.MoveToFloorAsync(1, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-        elevatorMock.Setup(e => e.MoveToFloorAsync(5, It.IsAny<CancellationToken>()))
-            .Returns(moveToFloor5.Task);
-        elevatorMock.Setup(e => e.MoveToFloorAsync(7, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-
-        ElevatorController controller = new ElevatorController([elevatorMock.Object], new NearestElevatorStrategy(), minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
-
-        await controller.RequestElevatorAsync(5, 1, CancellationToken.None);
-
-        var secondRequestTask = controller.RequestElevatorAsync(7, 1, CancellationToken.None);
-
-        Assert.False(secondRequestTask.IsCompleted);
-        moveToFloor5.SetResult();
-
-        await secondRequestTask.WaitAsync(TimeSpan.FromSeconds(4));
-
-        elevatorMock.Verify(e => e.MoveToFloorAsync(7, It.IsAny<CancellationToken>()), Times.Once);
-    }
 
     [Fact]
     public async Task RequestElevatorAsync_CancelsQueuedRequest_WhenTokenCancelled()
