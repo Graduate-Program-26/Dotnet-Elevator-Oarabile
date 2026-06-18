@@ -25,7 +25,7 @@ public sealed class RestrictedFloorStrategy : IDispatchStrategy
         {
             var restrictedElevator = elevators.FirstOrDefault(e => e.Id == _restrictedElevatorId);
 
-            if (restrictedElevator is not null && !restrictedElevator.IsAtCapacity)
+            if (restrictedElevator is not null && ElevatorSelectionRules.CanCarry(restrictedElevator, passengerCount))
             {
                 return restrictedElevator;
             }

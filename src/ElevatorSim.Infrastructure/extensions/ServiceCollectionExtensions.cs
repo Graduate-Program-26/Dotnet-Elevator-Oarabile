@@ -1,3 +1,6 @@
+using ElevatorSim.Application.Models;
+using ElevatorSim.Infrastructure.Validation;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -15,6 +18,13 @@ public static class ServiceCollectionExtension
             .CreateLogger();
 
         services.AddLogging(builder => builder.AddSerilog(dispose: true));
+
+        return services;
+    }
+
+    public static IServiceCollection AddElevatorValidation(this IServiceCollection services)
+    {
+        services.AddSingleton<IValidator<BuildingConfigRequest>, BuildingConfigRequestValidator>();
 
         return services;
     }

@@ -16,4 +16,8 @@ public interface IElevator
     Task MoveToFloorAsync(int destinatonFloor, CancellationToken cancellationToken);
     void AddPassengers(int count);
     void RemovePassengers(int count);
+    void BeginBoarding();
+    void CompleteBoarding();
+    void MarkOutOfService();
+    void ReturnToService();
 }

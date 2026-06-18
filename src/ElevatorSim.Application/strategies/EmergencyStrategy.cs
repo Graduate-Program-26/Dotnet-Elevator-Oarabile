@@ -8,11 +8,12 @@ public sealed class Emergencystrategy : IDispatchStrategy
     {
        return elevators
             .Where(e => e.State != Domain.Enums.ElevatorState.OutOfService)
+            .Where(e => ElevatorSelectionRules.CanCarry(e, passengerCount))
             .OrderBy(e => EstimatedSecondsToReach(e, requestedFloor))
             .FirstOrDefault();
     }
 
-    //Looking for the fastesty elevator, not really the closest
+    // Looks for the fastest elevator, not only the closest one.
     private static double EstimatedSecondsToReach(IElevator elevator, int requestedFloor)
     {
         var floorsToTravel = Math.Abs(elevator.CurrentFloor - requestedFloor);

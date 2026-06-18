@@ -21,6 +21,8 @@ public class EmergencystrategyTests
         mock.Setup(e => e.SecondsPerFloor).Returns(secondsPerFloor);
         mock.Setup(e => e.State).Returns(state);
         mock.Setup(e => e.IsAtCapacity).Returns(isAtCapacity);
+        mock.Setup(e => e.PassengerCount).Returns(isAtCapacity ? 10 : 0);
+        mock.Setup(e => e.MaxCapacity).Returns(10);
         return mock.Object;
     }
 
@@ -39,7 +41,7 @@ public class EmergencystrategyTests
     }
 
     [Fact]
-    public void SelectElevator_IgnoresCapacity_StillReturnsFullElevator()
+    public void SelectElevator_SkipsElevatorsAtCapacity()
     {
         IElevator fullElevator = CreateElevator(
               id: "E1",
@@ -52,7 +54,7 @@ public class EmergencystrategyTests
 
         var result = _strategy.SelectElevator(elevators, requestedFloor: 5, passengerCount: 1);
 
-        Assert.Equal("E1", result?.Id);
+        Assert.Null(result);
     }
 
     [Fact]
