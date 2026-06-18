@@ -8,8 +8,8 @@ public sealed class ElevatorTypePrompt
     {
         while (true)
         {
-            global::System.Console.Write($"Elevator {elevatorNumber} type (1/2/3): ");
-            var input = global::System.Console.ReadLine();
+            System.Console.Write($"Elevator {elevatorNumber} type (1/2/3): ");
+            var input = System.Console.ReadLine();
 
             switch (input)
             {
@@ -20,17 +20,27 @@ public sealed class ElevatorTypePrompt
                 case "3":
                     return ElevatorType.Freight;
                 default:
-                    global::System.Console.WriteLine("  Please enter 1, 2, or 3.\n");
+                    System.Console.WriteLine("  Please enter 1, 2, or 3.\n");
                     break;
             }
         }
     }
+    /// <summary>
+    /// Prompts the user to select an <see cref="ElevatorType"/> for each elevator
+    /// being created and returns the selected types.
+    /// </summary>
+    /// <param name="elevatorCount"></param>
+    /// <returns>
+    /// A list of <see cref="ElevatorType"/> values representing the user's
+    /// selection for each elevator. 
+    /// </returns>
+
     public List<ElevatorType> PromptForTypes(int elevatorCount)
     {
         var types = new List<ElevatorType>();
 
-        global::System.Console.WriteLine("Now let's choose a type for each elevator.");
-        global::System.Console.WriteLine("Options: 1) Passenger  2) HighSpeed  3) Freight\n");
+        System.Console.WriteLine("Now let's choose a type for each elevator.");
+        System.Console.WriteLine("Options: 1) Passenger  2) HighSpeed  3) Freight\n");
 
         for (var i = 1; i <= elevatorCount; i++)
         {

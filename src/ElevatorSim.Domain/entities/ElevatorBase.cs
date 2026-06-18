@@ -78,6 +78,9 @@ public abstract class ElevatorBase : IElevator
         _state = ElevatorState.OutOfService;
     }
 
+    /// <summary>
+    /// Takes elevator out of service
+    /// </summary>
     public void ReturnToService()
     {
         if (_state == ElevatorState.OutOfService)
@@ -87,6 +90,11 @@ public abstract class ElevatorBase : IElevator
         }
     }
 
+    /// <summary>
+    /// Remove Passengers from the elevator
+    /// </summary>
+    /// <param name="count"></param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public void RemovePassengers(int count)
     {
         if (count < 0)
@@ -103,6 +111,13 @@ public abstract class ElevatorBase : IElevator
         }
     }
 
+    /// <summary>
+    /// Move elevator floor to the correct destination
+    /// </summary>
+    /// <param name="destinationFloor"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public async Task MoveToFloorAsync(int destinationFloor, CancellationToken cancellationToken)
     {
         if (_state == ElevatorState.OutOfService)
@@ -144,5 +159,4 @@ public abstract class ElevatorBase : IElevator
     }
     protected virtual void OnFloorChanged() { }
     protected virtual void OnArrived() { }
-
 }

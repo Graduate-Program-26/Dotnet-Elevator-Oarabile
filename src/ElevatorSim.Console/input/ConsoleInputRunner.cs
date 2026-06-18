@@ -7,6 +7,18 @@ namespace ElevatorSim.Console.Input;
 
 public sealed class ConsoleInputRunner
 {
+    /// <summary>
+    /// Continuously processes user input for the elevator simulation, handling
+    /// simulation control commands and elevator requests until the simulation
+    /// is cancelled or the user exits.
+    /// </summary>
+    /// <param name="controller">The elevator controller that processes elevator requests.</param>
+    /// <param name="commandParser">Parses user input into elevator commands.</param>
+    /// <param name="autopilotRunner">Manages automatic request generation.</param>
+    /// <param name="adaptiveStrategyRunner">Manages adaptive dispatch strategy behavior.</param>
+    /// <param name="simulationStatus">Tracks the current state of the simulation.</param>
+    /// <param name="statusBoard">Displays status messages and user feedback.</param>
+    /// <param name="simulationCts">Controls cancellation of the simulation loop.</param>
     public void RunInputLoop(
     ElevatorController controller,
     CommandParser commandParser,
@@ -48,6 +60,7 @@ public sealed class ConsoleInputRunner
                     command.DestinationFloor,
                     command.PassengerCount,
                     simulationCts.Token);
+                    
                 _ = requestTask.ContinueWith(
                     task =>
                     {
@@ -76,13 +89,13 @@ public sealed class ConsoleInputRunner
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (!global::System.Console.KeyAvailable)
+            if (!System.Console.KeyAvailable)
             {
                 Thread.Sleep(25);
                 continue;
             }
 
-            var key = global::System.Console.ReadKey(intercept: true);
+            var key = System.Console.ReadKey(intercept: true);
 
             if (key.Key == ConsoleKey.Enter)
             {
@@ -112,6 +125,21 @@ public sealed class ConsoleInputRunner
         return null;
     }
 
+    /// <summary>
+    /// Processes simulation control commands entered by the user, such as
+    /// enabling or disabling autopilot, adjusting the request rate, toggling
+    /// emergency mode, and managing elevator service status.
+    /// </summary>
+    /// <param name="input">The raw command entered by the user.</param>
+    /// <param name="controller">The elevator controller that manages elevator state.</param>
+    /// <param name="autopilotRunner">The autopilot manager for generating automatic requests.</param>
+    /// <param name="adaptiveStrategyRunner">The component responsible for adaptive dispatch strategy behavior.</param>
+    /// <param name="simulationStatus">The simulation status model used to update the dashboard.</param>
+    /// <param name="statusBoard">The status board used to log user-facing messages.</param>
+    /// <returns>
+    /// <c>true</c> if the input was recognized and handled as a control command;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public static bool TryHandleControlCommand(
     string? input,
     ElevatorController controller,

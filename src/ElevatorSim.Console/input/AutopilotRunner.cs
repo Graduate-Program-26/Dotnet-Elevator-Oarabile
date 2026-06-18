@@ -56,7 +56,19 @@ public sealed class AutopilotRunner
             _emergencyModeEnabled = enabled;
         }
     }
-
+    
+    /// <summary>
+    /// Runs the autopilot loop, periodically generating elevator requests based
+    /// on the current simulation settings until the operation is cancelled.
+    /// </summary>
+    /// <param name="controller">The elevator controller used to dispatch generated requests.</param>
+    /// <param name="statusBoard">Displays autopilot activity and request failures.</param>
+    /// <param name="simulationStatus">Tracks and updates the current autopilot status.</param>
+    /// <param name="maxFloor">The highest floor available for generated requests.</param>
+    /// <param name="cancellationToken">A token used to stop the autopilot loop.</param>
+    /// <returns>
+    /// A task that completes when the autopilot loop is cancelled.
+    /// </returns>
     public async Task RunAsync(
         ElevatorController controller,
         StatusBoard statusBoard,
@@ -131,7 +143,7 @@ public sealed class AutopilotRunner
             < 0.90 => s_random.Next(4, 8),
             _ => s_random.Next(8, 16),
         };
-        
+
         //Never surpass the max
         var passengerCount = Math.Min(generatedPassengerCount, maxElevatorCapacity);
 
