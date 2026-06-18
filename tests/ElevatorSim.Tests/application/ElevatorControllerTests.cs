@@ -58,11 +58,14 @@ public class ElevatorControllerTests
     [Fact]
     public async Task RequestElevatorAsync_DispatchesSelectedElevator()
     {
+        TaskCompletionSource boarded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
         Mock<IElevator> elevatorMock = new Mock<IElevator>();
         elevatorMock.Setup(e => e.Id).Returns("E1");
         elevatorMock.Setup(e => e.IsAtCapacity).Returns(false);
         elevatorMock.Setup(e => e.PassengerCount).Returns(0);
         elevatorMock.Setup(e => e.MaxCapacity).Returns(10);
+        elevatorMock.Setup(e => e.AddPassengers(2)).Callback(() => boarded.TrySetResult());
         elevatorMock.Setup(e => e.MoveToFloorAsync(1, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         elevatorMock.Setup(e => e.MoveToFloorAsync(5, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
@@ -75,7 +78,7 @@ public class ElevatorControllerTests
             new ElevatorController([elevatorMock.Object], strategyMock.Object, minFloor: 1, maxFloor: 10, NullLogger<ElevatorController>.Instance);
 
         await controller.RequestElevatorAsync(5, 2, CancellationToken.None);
-        await Task.Delay(1500);
+        await boarded.Task.WaitAsync(TimeSpan.FromSeconds(3));
 
         elevatorMock.Verify(e => e.AddPassengers(2), Times.Once);
         elevatorMock.Verify(e => e.MoveToFloorAsync(5, It.IsAny<CancellationToken>()), Times.Once);
@@ -109,7 +112,7 @@ public class ElevatorControllerTests
         Assert.False(secondRequestTask.IsCompleted);
         moveToFloor5.SetResult();
 
-        await secondRequestTask.WaitAsync(TimeSpan.FromSeconds(2));
+        await secondRequestTask.WaitAsync(TimeSpan.FromSeconds(4));
 
         elevatorMock.Verify(e => e.MoveToFloorAsync(7, It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -155,7 +158,7 @@ public class ElevatorControllerTests
     [Fact]
     public async Task RequestElevatorAsync_RemovesAllPassengers_WhenElevatorArrives()
     {
-        TaskCompletionSource arrived = new TaskCompletionSource();
+        TaskCompletionSource unloaded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var elevatorMock = new Mock<IElevator>();
         elevatorMock.Setup(e => e.Id).Returns("E1");
@@ -163,12 +166,14 @@ public class ElevatorControllerTests
         elevatorMock.Setup(e => e.PassengerCount).Returns(3);
         elevatorMock.Setup(e => e.MaxCapacity).Returns(10);
         elevatorMock
+            .Setup(e => e.RemovePassengers(3))
+            .Callback(() => unloaded.TrySetResult());
+        elevatorMock
             .Setup(e => e.MoveToFloorAsync(1, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
         elevatorMock
             .Setup(e => e.MoveToFloorAsync(5, It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask)
-            .Callback(() => arrived.TrySetResult());
+            .Returns(Task.CompletedTask);
 
         var controller = new ElevatorController(
             [elevatorMock.Object],
@@ -178,10 +183,7 @@ public class ElevatorControllerTests
             NullLogger<ElevatorController>.Instance);
 
         await controller.RequestElevatorAsync(5, 3, CancellationToken.None);
-        await arrived.Task.WaitAsync(TimeSpan.FromSeconds(2));
-
-        // Give the trip lifecycle time to complete boarding and unloading.
-        await Task.Delay(2000);
+        await unloaded.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
         elevatorMock.Verify(e => e.RemovePassengers(3), Times.Once);
     }

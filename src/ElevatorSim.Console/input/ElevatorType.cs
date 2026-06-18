@@ -20,7 +20,7 @@ public sealed class ElevatorTypePrompt
                 case "3":
                     return ElevatorType.Freight;
                 default:
-                    global::System.Console.WriteLine("  ✗ Please enter 1, 2, or 3.\n");
+                    global::System.Console.WriteLine("  Please enter 1, 2, or 3.\n");
                     break;
             }
         }
@@ -36,7 +36,7 @@ public sealed class ElevatorTypePrompt
         {
             types.Add(PromptForSingleType(i));
         }
-        
+
         return types;
     }
 }

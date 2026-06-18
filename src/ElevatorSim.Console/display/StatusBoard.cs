@@ -66,7 +66,8 @@ public sealed class StatusBoard
             $"Autopilot: {autopilot}   " +
             $"Emergency: {(status.EmergencyModeEnabled ? "[red]On[/]" : "[grey]Off[/]")}   " +
             $"Pending: [bold]{status.PendingRequests}[/]   " +
-            $"Busy: [bold]{status.BusyElevators}[/]";
+            $"Busy: [bold]{status.BusyElevators}[/]\n" +
+            $"Input: [bold cyan]{Markup.Escape(status.CurrentInput)}[/]";
 
         return new Panel(content)
             .Header("[bold]Simulation[/]")

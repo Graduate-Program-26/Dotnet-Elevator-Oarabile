@@ -9,6 +9,7 @@ public sealed class SimulationStatus
     private int _requestsPerMinute;
     private int _pendingRequests;
     private int _busyElevators;
+    private string _currentInput = string.Empty;
 
     public void UpdateStrategy(string strategyName)
     {
@@ -44,6 +45,14 @@ public sealed class SimulationStatus
         }
     }
 
+    public void UpdateCurrentInput(string currentInput)
+    {
+        lock (_lock)
+        {
+            _currentInput = currentInput;
+        }
+    }
+
     public SimulationStatusSnapshot Snapshot()
     {
         lock (_lock)
@@ -54,7 +63,8 @@ public sealed class SimulationStatus
                 _emergencyModeEnabled,
                 _requestsPerMinute,
                 _pendingRequests,
-                _busyElevators);
+                _busyElevators,
+                _currentInput);
         }
     }
 }
@@ -65,4 +75,5 @@ public sealed record SimulationStatusSnapshot(
     bool EmergencyModeEnabled,
     int RequestsPerMinute,
     int PendingRequests,
-    int BusyElevators);
+    int BusyElevators,
+    string CurrentInput);
