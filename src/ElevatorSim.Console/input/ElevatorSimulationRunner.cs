@@ -63,7 +63,7 @@ public sealed class ElevatorSimulationRunner
         _simulationStatus.UpdateStrategy(controller.CurrentStrategyName);
         _simulationStatus.UpdateAutopilot(_autopilotRunner.Enabled, _autopilotRunner.RequestsPerMinute);
         _simulationStatus.UpdateEmergencyMode(_adaptiveStrategyRunner.EmergencyModeEnabled);
-        _statusBoard.LogActivity("Commands: 'from,to,passengers', 'service E1 out', 'service E1 in', 'emergency on', 'auto on', 'rate 20', 'exit'.");
+        _statusBoard.LogActivity("Commands: 'from,to,passengers e.g (2,3,4)', 'service E1 (in/out)', 'emergency (on/off)', 'auto (on/off)', 'rate 20 (people/min)', 'exit'.");
 
         var dashboardTask = _dashboardRunner.RunAsync(controller.Elevators, simulationCts.Token);
         var autopilotTask = _autopilotRunner.RunAsync(controller, _statusBoard, _simulationStatus, maxFloor, simulationCts.Token);
